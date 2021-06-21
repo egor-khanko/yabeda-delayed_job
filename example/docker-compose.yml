@@ -1,0 +1,53 @@
+version: '3.4'
+
+services:
+  app: &app
+    image: ruby:latest
+    environment:
+      - BUNDLE_PATH=/bundle
+      - BUNDLE_CONFIG=/app/.bundle/config
+      - REDIS_URL=redis://redis
+
+      - DATABASE_URL=postgresql://postgres@postgres/yabeda-delayed_job
+    working_dir: /app
+    volumes:
+      - ..:/gem:cached
+      - .:/app:cached
+      - bundler_data:/bundle
+    tmpfs:
+      - /tmp
+    depends_on:
+      - postgres
+
+  enqueuer:
+    <<: *app
+    command: bundle exec ./enqueuer.rb
+
+  delayed_job:
+    <<: *app
+    command: bundle exec ./delayed_job.rb
+  postgres:
+    image: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=yabeda-delayed_job
+
+  prometheus:
+    image: prom/prometheus:v2.25.2
+    volumes:
+      - ./prometheus/config.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090/tcp
+    depends_on:
+      - enqueuer
+      - delayed_job
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+
+volumes:
+  bundler_data:
+  postgres:

@@ -1,0 +1,12 @@
+# Logfile created on 2021-06-21 18:52:52 +0000 by logger.rb/v1.4.3
+I, [2021-06-21T18:52:52.998760 #85]  INFO -- : 2021-06-21T18:52:52+0000: [Worker(delayed_job host:d7008330188a pid:85)] Starting job worker
+I, [2021-06-21T18:52:53.031345 #85]  INFO -- : 2021-06-21T18:52:53+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=1) RUNNING
+I, [2021-06-21T18:52:55.246040 #85]  INFO -- : 2021-06-21T18:52:55+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=1) COMPLETED after 2.2140
+I, [2021-06-21T18:52:55.249806 #85]  INFO -- : 2021-06-21T18:52:55+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=2) RUNNING
+I, [2021-06-21T18:52:59.055058 #85]  INFO -- : 2021-06-21T18:52:59+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=2) COMPLETED after 3.8045
+I, [2021-06-21T18:52:59.058246 #85]  INFO -- : 2021-06-21T18:52:59+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=3) RUNNING
+I, [2021-06-21T18:52:59.909979 #85]  INFO -- : 2021-06-21T18:52:59+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=3) COMPLETED after 0.8510
+I, [2021-06-21T18:52:59.914425 #85]  INFO -- : 2021-06-21T18:52:59+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=4) RUNNING
+I, [2021-06-21T18:53:00.916535 #85]  INFO -- : 2021-06-21T18:53:00+0000: [Worker(delayed_job host:d7008330188a pid:85)] Exiting...
+I, [2021-06-21T18:53:04.921236 #85]  INFO -- : 2021-06-21T18:53:04+0000: [Worker(delayed_job host:d7008330188a pid:85)] Job RandomJob#call (id=4) COMPLETED after 5.0059
+I, [2021-06-21T18:53:04.922786 #85]  INFO -- : 2021-06-21T18:53:04+0000: [Worker(delayed_job host:d7008330188a pid:85)] 4 jobs processed at 0.3355 j/s, 0 failed

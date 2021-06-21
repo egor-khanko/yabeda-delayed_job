@@ -1,0 +1,34 @@
+version: '3.4'
+
+services:
+  app:
+    image: ruby:latest
+    environment:
+      - BUNDLE_PATH=/bundle
+      - BUNDLE_CONFIG=/app/.bundle/config
+      - REDIS_URL=redis://redis
+
+      - DATABASE_URL=postgresql://postgres@postgres/test
+    command: bash
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - bundler_data:/bundle
+    tmpfs:
+      - /tmp
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:9.6
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=test
+
+volumes:
+  bundler_data:
+  postgres:
