@@ -27,9 +27,17 @@ module Yabeda
                               buckets: LONG_RUNNING_JOB_RUNTIME_BUCKETS
       gauge :running_job_runtime, tags: %i[queue worker], aggregation: :max, unit: :seconds,
                                          comment: "How long currently running jobs are running (useful for detection of hung jobs)"
+      gauge     :jobs_waiting_count,   tags: %i[queue], comment: "The number of jobs waiting to process in sidekiq."
+      gauge     :queue_latency,        tags: %i[queue], comment: "The queue latency, the difference in seconds since the oldest job in the queue was enqueued"
 
       collect do
         Yabeda::DelayedJob.track_max_job_runtime if ::Yabeda::DelayedJob.server?
+        Delayed::Worker.backend.where('run_at < ? and locked_at is null and failed_at is null', Time.current).group(:queue).select(:queue).count.each do |queue, count|
+          Yabeda.delayed_job.jobs_waiting_count.set({queue: queue}, count)
+        end
+        Delayed::Worker.backend.where('run_at < NOW() and locked_at is null and failed_at is null').group(:queue).select("max(NOW() - run_at) as latency, queue").to_a.each do |job|
+          Yabeda.delayed_job.queue_latency.set({queue: job.queue}, job.latency)
+        end
       end
     end
 
