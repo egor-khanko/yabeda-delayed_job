@@ -6,7 +6,6 @@ services:
     environment:
       - BUNDLE_PATH=/bundle
       - BUNDLE_CONFIG=/app/.bundle/config
-      - REDIS_URL=redis://redis
 
       - DATABASE_URL=postgresql://postgres@postgres/yabeda-delayed_job
     working_dir: /app
@@ -48,6 +47,26 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
 
+  grafana:
+    image: grafana/grafana:7.4.3
+    depends_on:
+      - prometheus    
+    ports:
+      - 9091:9091/tcp
+    environment:
+      GF_SECURITY_ADMIN_USER: admin@admin.ru
+      GF_SECURITY_ADMIN_PASSWORD: "12345678"
+    volumes: 
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - ./grafana/datasources:/etc/grafana/datasources
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    user: "104"
+
+
 volumes:
   bundler_data:
   postgres:
+  grafana-data:
+
