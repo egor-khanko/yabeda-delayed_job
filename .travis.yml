@@ -1,7 +1,11 @@
----
-sudo: false
-language: ruby
-cache: bundler
-rvm:
-  - 2.6.3
-before_install: gem install bundler -v 1.17.2
+language: minimal
+sudo: require
+services:
+  - docker
+
+before_script:
+  - unset BUNDLE_GEMFILE
+  - docker-compose run app bundle install
+script:
+  - docker-compose run app bundle exec rake
+
