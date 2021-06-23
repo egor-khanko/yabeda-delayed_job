@@ -13,6 +13,14 @@ Works as the DelayedJjob plugin and provides following metrics:
  - `job_runtime` - the histogram of job running time (in seconds, segmented by queue, worker)
  - `running_job_runtime` - the running time of currently executed job (segmented by queue, worker). Helps to determine long running jobs.
 
+## Details
+
+Example of predefined Grafana dashboard.
+
+
+![Yabeda::DelayedJob Grafana Dashboard](docs/yabeda-delayed_job-grafana.png).
+
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -39,14 +47,6 @@ Start metrics exporter to you delayed_job startup script (`script/delayed_job`).
 ::Yabeda.configure!
 ::Yabeda::Prometheus::Exporter.start_metrics_server!
 ```
-
-## Details
-
-Example of predefined Grafana dashboard.
-
-
-![Yabeda::DelayedJob Grafana Dashboard](docs/yabeda-delayed_job-grafana.png).
-
 
 ## Development with Docker
 
