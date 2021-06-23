@@ -1,8 +1,17 @@
 # Yabeda::DelayedJob
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/yabeda/delayed_job`. To experiment with that code, run `bin/console` for an interactive prompt.
+Built-in metrics for [DelayedJob](https://github.com/collectiveidea/delayed_job) background workers monitoring out of the box! Part of the [yabeda](https://github.com/yabeda-rb/yabeda) suite.
 
-TODO: Delete this and the text above, and describe your gem
+
+## Metrics
+
+Works as the DelayedJjob plugin and provides following metrics:
+ - `jobs_enqueued_total` - the counter of enqueued jobs (segmented by queue/worker)
+ - `jobs_failed_total`/`jobs_errored_total` - the counter of failed/errored jobs (segmented by queue/worker/error)
+ - `jobs_waiting_count` - the number of jobs are waited for execution, queue size (segmented by queue).
+ - `queue_latency` - the queue latency - difference in seconds since the oldest job was enqueued (segmented by queue)
+ - `job_runtime` - the histogram of job running time (in seconds, segmented by queue, worker)
+ - `running_job_runtime` - the running time of currently executed job (segmented by queue, worker). Helps to determine long running jobs.
 
 ## Installation
 
@@ -22,17 +31,34 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Collecting metrics
 
-## Development
+Start metrics exporter to you delayed_job startup script (`script/delayed_job`). In case you do not have Rails loaded configure Yabeda first:
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+::Yabeda.configure!
+::Yabeda::Prometheus::Exporter.start_metrics_server!
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## Details
+
+Example of predefined Grafana dashboard.
+
+
+![Yabeda::DelayedJob Grafana Dashboard](docs/yabeda-delayed_job-grafana.png).
+
+
+## Development with Docker
+
+Get local development environment working and tests running is very easy with docker-compose:
+```bash
+docker-compose run app bundle
+docker-compose run app bundle exec rspec
+```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/yabeda-delayed_job. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/dsalahutdinov/yabeda-delayed_job. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
