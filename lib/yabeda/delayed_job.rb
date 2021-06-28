@@ -26,13 +26,17 @@ module Yabeda
                               tags: %i[queue worker],
                               buckets: LONG_RUNNING_JOB_RUNTIME_BUCKETS
       gauge :running_job_runtime, tags: %i[queue worker], aggregation: :max, unit: :seconds,
-                                         comment: "How long currently running jobs are running (useful for detection of hung jobs)"
-      gauge     :jobs_waiting_count,   tags: %i[queue], comment: "The number of jobs waiting to process in sidekiq."
-      gauge     :queue_latency,        tags: %i[queue], comment: "The queue latency, the difference in seconds since the oldest job in the queue was enqueued"
+                                  comment: 'How long currently running jobs are running ' \
+                                           '(useful for detection of hung jobs)'
+      gauge     :jobs_waiting_count,   tags: %i[queue], comment: 'The number of jobs waiting to process in sidekiq.'
+      gauge     :queue_latency,        tags: %i[queue],
+                                       comment: 'The queue latency, the difference in seconds since the oldest ' \
+                                                'job in the queue was enqueued'
 
       collect do
         Yabeda::DelayedJob.track_max_job_runtime if ::Yabeda::DelayedJob.server?
-        track_database_metrics if active_record_adapter? 
+        puts ::Yabeda::DelayedJob.active_record_adapter?
+        ::Yabeda::DelayedJob.track_database_metrics if ::Yabeda::DelayedJob.active_record_adapter?
       end
     end
 
@@ -49,31 +53,29 @@ module Yabeda
       end
 
       def track_database_metrics
-        byebug
-        scope.select(:queue).count.each do |queue, count|
-          Yabeda.delayed_job.jobs_waiting_count.set({queue: queue}, count)
+        job_scope.select(:queue).count.each do |queue, count|
+          Yabeda.delayed_job.jobs_waiting_count.set({ queue: queue }, count)
         end
-        scope.select("max(NOW() - run_at").each do |job|
-          Yabeda.delayed_job.queue_latency.set({queue: job.queue}, job.latency)
+        job_scope.select('max(NOW() - run_at)').each do |job|
+          Yabeda.delayed_job.queue_latency.set({ queue: job.queue }, job.latency)
         end
       end
 
-      def scope(job)
-        max_runtime = ::Delayed::Worker.max_run_time
+      def job_scope
         db_time_now = ::Delayed::Worker.backend.db_time_now
         ::Delayed::Worker.backend.where(
-          "(run_at <= ? AND (locked_at IS NULL OR locked_at < ?)) AND failed_at IS NULL",
+          '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?)) AND failed_at IS NULL',
           db_time_now,
-          db_time_now - max_run_time
+          db_time_now - ::Delayed::Worker.max_run_time
         ).group(:queue)
       end
 
-      def active_record_datapter?
+      def active_record_adapter?
         defined?(Delayed::Backend::ActiveRecord::Job) &&
-          Delayed::Worker.backend.is_a?(Delayed::Backend::ActiveRecord::Job)
+          Delayed::Worker.backend.name == Delayed::Backend::ActiveRecord::Job.name
       end
 
-     # Hash of hashes containing all currently running jobs' start timestamps
+      # Hash of hashes containing all currently running jobs' start timestamps
       # to calculate maximum durations of currently running not yet completed jobs
       # { { queue: "default", worker: "SomeJob" } => { "jid1" => 100500, "jid2" => 424242 } }
       attr_accessor :jobs_started_at

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 FileUtils.rm_rf('/tmp/prometheus')
 

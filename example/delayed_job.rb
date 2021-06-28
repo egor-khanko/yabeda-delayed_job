@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'active_record'
 require 'delayed_job'
@@ -18,5 +19,5 @@ require_relative 'prometheus_store'
 
 ::Yabeda::Prometheus::Exporter.start_metrics_server!
 
-Delayed::Worker.logger = Logger.new(STDOUT)
+Delayed::Worker.logger = Logger.new($stdout)
 Delayed::Command.new(['run']).daemonize

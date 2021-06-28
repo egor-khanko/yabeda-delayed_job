@@ -32,5 +32,11 @@ RSpec.describe Yabeda::DelayedJob do
       ::Delayed::Backend::ActiveRecord::Job.destroy_all
     end
   end
+
+  describe 'collect' do
+    it do
+      expect { Yabeda.collectors.each(&:call) }.not_to raise_error
+    end
+  end
 end
 # rubocop: enable Metrics/BlockLength
