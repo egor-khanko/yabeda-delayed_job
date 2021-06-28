@@ -32,19 +32,14 @@ module Yabeda
 
       collect do
         Yabeda::DelayedJob.track_max_job_runtime if ::Yabeda::DelayedJob.server?
-        Delayed::Worker.backend.where('run_at < ? and locked_at is null and failed_at is null', Time.current).group(:queue).select(:queue).count.each do |queue, count|
-          Yabeda.delayed_job.jobs_waiting_count.set({queue: queue}, count)
-        end
-        Delayed::Worker.backend.where('run_at < NOW() and locked_at is null and failed_at is null').group(:queue).select("max(NOW() - run_at) as latency, queue").to_a.each do |job|
-          Yabeda.delayed_job.queue_latency.set({queue: job.queue}, job.latency)
-        end
+        track_database_metrics if active_record_adapter? 
       end
     end
 
     class << self
       def server?
         require 'delayed/command'
-        ObjectSpace.each_object(Delayed::Command).any?
+        @server ||= ObjectSpace.each_object(Delayed::Command).any?
       end
 
       def labelize(job)
@@ -53,7 +48,32 @@ module Yabeda
         result
       end
 
-      # Hash of hashes containing all currently running jobs' start timestamps
+      def track_database_metrics
+        byebug
+        scope.select(:queue).count.each do |queue, count|
+          Yabeda.delayed_job.jobs_waiting_count.set({queue: queue}, count)
+        end
+        scope.select("max(NOW() - run_at").each do |job|
+          Yabeda.delayed_job.queue_latency.set({queue: job.queue}, job.latency)
+        end
+      end
+
+      def scope(job)
+        max_runtime = ::Delayed::Worker.max_run_time
+        db_time_now = ::Delayed::Worker.backend.db_time_now
+        ::Delayed::Worker.backend.where(
+          "(run_at <= ? AND (locked_at IS NULL OR locked_at < ?)) AND failed_at IS NULL",
+          db_time_now,
+          db_time_now - max_run_time
+        ).group(:queue)
+      end
+
+      def active_record_datapter?
+        defined?(Delayed::Backend::ActiveRecord::Job) &&
+          Delayed::Worker.backend.is_a?(Delayed::Backend::ActiveRecord::Job)
+      end
+
+     # Hash of hashes containing all currently running jobs' start timestamps
       # to calculate maximum durations of currently running not yet completed jobs
       # { { queue: "default", worker: "SomeJob" } => { "jid1" => 100500, "jid2" => 424242 } }
       attr_accessor :jobs_started_at
