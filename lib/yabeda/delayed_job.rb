@@ -56,7 +56,7 @@ module Yabeda
         job_scope.select(:queue).count.each do |queue, count|
           Yabeda.delayed_job.jobs_waiting_count.set({ queue: queue }, count)
         end
-        job_scope.select('max(NOW() - run_at)').each do |job|
+        job_scope.select('queue, max(NOW() - run_at) latency').each do |job|
           Yabeda.delayed_job.queue_latency.set({ queue: job.queue }, job.latency)
         end
       end

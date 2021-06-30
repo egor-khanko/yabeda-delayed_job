@@ -35,7 +35,10 @@ RSpec.describe Yabeda::DelayedJob do
 
   describe 'collect' do
     it do
+      FailJob.new(some: :data).delay(queue: :fail_queue).call
+
       expect { Yabeda.collectors.each(&:call) }.not_to raise_error
+      ::Delayed::Backend::ActiveRecord::Job.destroy_all
     end
   end
 end
