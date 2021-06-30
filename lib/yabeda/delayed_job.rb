@@ -34,9 +34,10 @@ module Yabeda
                                                 'job in the queue was enqueued'
 
       collect do
-        Yabeda::DelayedJob.track_max_job_runtime if ::Yabeda::DelayedJob.server?
-        puts ::Yabeda::DelayedJob.active_record_adapter?
-        ::Yabeda::DelayedJob.track_database_metrics if ::Yabeda::DelayedJob.active_record_adapter?
+        if ::Yabeda::DelayedJob.server?
+          Yabeda::DelayedJob.track_max_job_runtime
+          ::Yabeda::DelayedJob.track_database_metrics if ::Yabeda::DelayedJob.active_record_adapter?
+        end
       end
     end
 
