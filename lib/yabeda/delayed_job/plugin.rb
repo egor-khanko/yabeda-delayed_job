@@ -22,20 +22,22 @@ module Yabeda
         end
 
         lifecycle.around(:perform) do |worker, job, &block|
-          labels = ::Yabeda::DelayedJob.labelize(job)
+          begin
+            labels = ::Yabeda::DelayedJob.labelize(job)
 
-          Process.clock_gettime(Process::CLOCK_MONOTONIC).tap do |start|
-            Yabeda::DelayedJob.jobs_started_at[labels][job.id] = start
+            Process.clock_gettime(Process::CLOCK_MONOTONIC).tap do |start|
+              Yabeda::DelayedJob.jobs_started_at[labels][job.id] = start
 
-            block.call(worker)
+              block.call(worker)
 
-            Yabeda.delayed_job.job_runtime.measure(
-              labels,
-              ::Yabeda::DelayedJob.elapsed(start)
-            )
+              Yabeda.delayed_job.job_runtime.measure(
+                labels,
+                ::Yabeda::DelayedJob.elapsed(start)
+              )
+            end
+          ensure
+            Yabeda::DelayedJob.jobs_started_at[labels].delete(job.id)
           end
-        ensure
-          Yabeda::DelayedJob.jobs_started_at[labels].delete(job.id)
         end
       end
     end
